@@ -11,15 +11,7 @@ namespace Shift_Tracker_Console_App
     {
         public static void ShowTable<T>(List<T> tableData) where T : class
         {
-            try
-            {
-                ConsoleTableBuilder.From(tableData).ExportAndWriteLine();
-            }
-            catch (NullReferenceException)
-            {
-                Console.WriteLine("\n No Records to display. \n");
-            }
-
+            ConsoleTableBuilder.From(tableData).ExportAndWriteLine();
         }
     }
 }

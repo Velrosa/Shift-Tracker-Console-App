@@ -13,6 +13,7 @@ namespace Shift_Tracker_Console_App
 {
     internal class ShiftService
     {
+        // HTTP GET All the Shift records
         internal void GetShifts()
         {
             var client = new RestClient("http://localhost:26214/api/Shifts");
@@ -31,6 +32,7 @@ namespace Shift_Tracker_Console_App
             }
         }
 
+        // HTTP GET a single Shift record.
         internal bool GetShift(string id)
         {
             var client = new RestClient("http://localhost:26214/api/Shifts");
@@ -57,6 +59,8 @@ namespace Shift_Tracker_Console_App
                 return false;
             }
         }
+
+        // HTTP POST a Shift record.
         internal void CreateShift(Shift shift)
         {
             var client = new RestClient("http://localhost:26214/api/Shifts");
@@ -71,6 +75,8 @@ namespace Shift_Tracker_Console_App
                 Console.WriteLine(ex.Message);
             }
         }
+
+        // HTTP PUT a Shift record.
         internal void UpdateShift(Shift shift)
         {
             var client = new RestClient("http://localhost:26214/api/Shifts");
@@ -85,6 +91,8 @@ namespace Shift_Tracker_Console_App
                 Console.WriteLine(ex.Message);
             }
         }
+
+        // HTTP DELETE a Shift record.
         internal void DeleteShift(Shift shift)
         {
             var client = new RestClient("http://localhost:26214/api/Shifts");
@@ -101,8 +109,3 @@ namespace Shift_Tracker_Console_App
         }
     }
 }
-
-
-//List<Shift> delist = JsonConvert.DeserializeObject<List<Shift>>(response.Result.Content);
-
-//List<Shift> shifts = JsonSerializer.DeserializeAsync<List<Shift>>(response.Result);
