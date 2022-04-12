@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shift_Tracker_Console_App.Models
 {
-    internal class Shift
+    public class Shift
     {
         public int ShiftId { get; set; }
         public DateTime Start { get; set; }

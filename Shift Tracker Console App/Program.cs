@@ -6,7 +6,11 @@ namespace Shift_Tracker_Console_App
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            UserInput userInput = new UserInput();
+            while (true)
+            {
+                userInput.MainMenu();
+            }
         }
     }
 }
