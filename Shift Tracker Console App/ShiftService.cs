@@ -13,98 +13,131 @@ namespace Shift_Tracker_Console_App
 {
     internal class ShiftService
     {
+        private readonly string _apiKey = "http://localhost:26214/api/Shifts";
+
         // HTTP GET All the Shift records
         internal void GetShifts()
         {
-            var client = new RestClient("http://localhost:26214/api/Shifts");
-            var request = new RestRequest();
-            try
+            using(var client = new RestClient(_apiKey))
             {
-                var response = client.GetAsync<List<Shift>>(request);
+                var request = new RestRequest();
+                try
+                {
+                    var response = client.GetAsync<List<Shift>>(request);
 
-                List<Shift> shifts = response.Result;
+                    List<Shift> shifts = response.Result;
 
-                TableVisuals.ShowTable(shifts);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                    TableVisuals.ShowTable(shifts);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
-        // HTTP GET a single Shift record.
-        internal bool GetShift(string id)
-        {
-            var client = new RestClient("http://localhost:26214/api/Shifts");
-            var request = new RestRequest($"/{id}");
-            try
-            {
-                var response = client.GetAsync<Shift>(request);
 
-                List<Shift> shifts = new List<Shift>();
-                if (response.Result != null)
+        // HTTP GET a single Shift record.
+        internal void GetShift(string id)
+        {
+            using (var client = new RestClient(_apiKey))
+            {
+                var request = new RestRequest($"/{id}");
+
+                try
                 {
+                    var response = client.GetAsync<Shift>(request);
+
+                    List<Shift> shifts = new List<Shift>();
+
                     shifts.Add(response.Result);
                     TableVisuals.ShowTable(shifts);
-                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    return false;
+                    Console.WriteLine(ex.Message);
                 }
             }
-            catch(Exception ex)
+        }
+
+        internal bool CheckShiftId(string id)
+        {
+            using (var client = new RestClient(_apiKey))
             {
-                Console.WriteLine(ex.Message);
-                return false;
+                var request = new RestRequest($"/{id}");
+                try
+                {
+                    var response = client.GetAsync<Shift>(request);
+
+                    if (response.Result != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return false;
+                }
             }
         }
 
         // HTTP POST a Shift record.
         internal void CreateShift(Shift shift)
         {
-            var client = new RestClient("http://localhost:26214/api/Shifts");
-            var request = new RestRequest().AddJsonBody(shift);
-            try
+            using (var client = new RestClient(_apiKey))
             {
-                client.PostAsync<Shift>(request);
-                Console.WriteLine($"Shift Record sucessfully created.");
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                var request = new RestRequest().AddJsonBody(shift);
+                try
+                {
+                    client.PostAsync<Shift>(request);
+
+                    Console.WriteLine($" Shift Record sucessfully created.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
         // HTTP PUT a Shift record.
         internal void UpdateShift(Shift shift)
         {
-            var client = new RestClient("http://localhost:26214/api/Shifts");
-            var request = new RestRequest($"?id={shift.ShiftId}").AddJsonBody(shift);
-            try
+            using (var client = new RestClient(_apiKey))
             {
-                client.PutAsync<Shift>(request);
-                Console.WriteLine($"Shift Record: {shift.ShiftId} sucessfully updated.");
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                var request = new RestRequest($"?id={shift.ShiftId}").AddJsonBody(shift);
+                try
+                {
+                    client.PutAsync<Shift>(request);
+                    Console.WriteLine($" Shift Record: {shift.ShiftId} sucessfully updated.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
         // HTTP DELETE a Shift record.
         internal void DeleteShift(Shift shift)
         {
-            var client = new RestClient("http://localhost:26214/api/Shifts");
-            var request = new RestRequest($"?id={shift.ShiftId}");
-            try
+            using (var client = new RestClient(_apiKey))
             {
-                client.DeleteAsync<Shift>(request);
-                Console.WriteLine($"Shift Record: {shift.ShiftId} sucessfully deleted.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                var request = new RestRequest($"?id={shift.ShiftId}");
+                try
+                {
+                    client.DeleteAsync<Shift>(request);
+                    Console.WriteLine($" Shift Record: {shift.ShiftId} sucessfully deleted.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
     }

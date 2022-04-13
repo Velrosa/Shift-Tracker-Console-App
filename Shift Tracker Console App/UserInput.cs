@@ -11,9 +11,8 @@ namespace Shift_Tracker_Console_App
     {
         ShiftService service = new ShiftService();
         
-        private const decimal payRate = 14;   // PayRate (per hour) used to calcuate pay from hours worked
-        
-        
+        private readonly decimal payRate = 14;   // PayRate (per hour) used to calcuate pay from hours worked
+                
         // Main Menu interface
         internal void MainMenu()
         {
@@ -29,6 +28,9 @@ namespace Shift_Tracker_Console_App
                                 " Type 5 to Delete a Shift record.\n");
 
             string selector = Convert.ToString(Console.ReadKey(true).KeyChar);
+
+            Console.Clear();
+            Console.WriteLine(" Type MENU to return.");
 
             switch (selector)
             {
@@ -50,49 +52,40 @@ namespace Shift_Tracker_Console_App
                 case "5":
                     DeleteShiftInput();
                     break;
+                default:
+                    Console.Write(" Invalid Entry.");
+                    break;
             }
+
+            Console.WriteLine("\n Press any key to return... ");
+            Console.ReadKey();
         }
         
         // Get all shifts from API.
         private void GetShiftsInput()
         {
-            Console.Clear();
             Console.WriteLine("\n Displaying All Shift Records... ");
             
             service.GetShifts();
-            
-            Console.WriteLine("\n Press any key to return... ");
-            Console.ReadKey();
         }
         
         // Get one shift from API.
         private void GetShiftInput()
         {
-            Console.Clear();
-            
-            Console.WriteLine("Displaying a single Shift record... Type MENU To return.");
+            Console.WriteLine("Displaying a single Shift record... ");
             
             Console.Write("\n Please enter the ID of the Shift you want to view: ");
-            string id = Console.ReadLine();
-            if (id == "MENU") { return; }
+            string id = Validator.IsNumberValid(Console.ReadLine());
+            if (id == "MENU") return;
 
-            while (!Validator.IsNumberValid(id))
+            if (!service.CheckShiftId(id))
             {
-                Console.Write("\n Invalid number. Please Try again: ");
-                id = Console.ReadLine();
-            }
-
-            // Check if the ID is valid or null.
-            if (!service.GetShift(id))
-            {
-                Console.WriteLine("\n Invalid ID chosen. Press any key to return... ");
-                Console.ReadKey();
-                return;
+                Console.WriteLine($"\n ID:{id} does not exist.");
             }
             else
             {
-                Console.WriteLine("\n Press any key to return... ");
-                Console.ReadKey();
+                Console.Clear();
+                service.GetShift(id);
             }
         }
         // Create a shift.
@@ -100,144 +93,73 @@ namespace Shift_Tracker_Console_App
         {
             Shift shift = new Shift();
             
-            Console.Clear();
-            Console.WriteLine("\n Creating a Shift... Type MENU To return.");
+            Console.WriteLine("\n Creating a Shift... ");
             
             Console.Write("\n Start Time DD/MM/YY HH:MM -: ");
-            string start = Console.ReadLine();
-            if(start == "MENU") { return; }
-
-            while (!Validator.IsDateValid(start))
-            {
-                Console.Write("\n Invalid Date. Please Try Again: ");
-                start = Console.ReadLine();
-            }
-
+            string start = Validator.IsDateValid(Console.ReadLine());
+            if(start == "MENU")  return; 
             shift.Start = DateTime.Parse(start);
 
             Console.Write("\n End Time DD/MM/YY HH:MM -: ");
-            string end = Console.ReadLine();
-            if (end == "MENU") { return; }
-
-            while (!Validator.IsDateValid(end))
-            {
-                Console.Write("\n Invalid Date. Please Try Again: ");
-                end = Console.ReadLine();
-            }
-
+            string end = Validator.IsDateValid(Console.ReadLine());
+            if (end == "MENU")  return; 
             shift.End = DateTime.Parse(end);
-            
-            if (shift.End < shift.Start)
-            {
-                Console.WriteLine("\n Invalid Timespan between dates provided. Press any key to return... ");
-                Console.ReadKey();
-                return;
-            }
+
+            CalculateMinutesAndPay(shift);
+            if (shift.Minutes == 0) return;
 
             Console.Write("\n Location: ");
-            string location = Console.ReadLine();
-            if (location == "MENU") { return; }
-
-            while (!Validator.IsStringValid(location))
-            {
-                Console.Write("\n Invalid Entry. Please Try Again: ");
-                location = Console.ReadLine();
-            }
-
+            string location = Validator.IsStringValid(Console.ReadLine());
+            if (location == "MENU")  return; 
             shift.Location = location;
 
-            // calculates the minutes from the times provided and pay from the minutes.
-            double minutes = (shift.End - shift.Start).TotalMinutes;
-
-            shift.Minutes = (decimal)minutes;
-
-            shift.Pay = shift.Minutes * (payRate/60);
-
             service.CreateShift(shift);
-
-            Console.WriteLine("\n Press any key to return.");
-            Console.ReadKey();
         }
         // Update a shift.
         private void UpdateShiftInput()
         {
             Shift shift = new Shift();
 
-            Console.Clear();            
+            Console.WriteLine("\n Updating a Shift...");
             service.GetShifts();
-            
-            Console.WriteLine("\n Updating a Shift... Type MENU To return.");
 
             Console.Write("\n Enter the ID of the Shift record you want to change: ");
-            string id = Console.ReadLine();
-            if (id == "MENU") { return; }
-
-            while (!Validator.IsNumberValid(id))
-            {
-                Console.Write("\n Invalid number. Please Try again: ");
-                id = Console.ReadLine();
-            }
+            string id = Validator.IsNumberValid(Console.ReadLine());
+            if (id == "MENU")  return; 
 
             shift.ShiftId = Int32.Parse(id);
 
             Console.Clear();
+            
             // Check if the ID is valid or null.
-            if (!service.GetShift(shift.ShiftId.ToString()))
+            if (!service.CheckShiftId(shift.ShiftId.ToString()))
             {
-                Console.WriteLine("\n Invalid ID chosen. Press any key to return... ");
-                Console.ReadKey();
-                return;
+                Console.WriteLine($"\n ID:{id} does not exist.");
             }
-            
-            Console.Write("\n Start Time DD/MM/YY HH:MM -: ");
-            string start = Console.ReadLine();
-            if (start == "MENU") { return; }
-
-            while (!Validator.IsDateValid(start))
+            else
             {
-                Console.Write("\n Invalid Date. Please Try Again: ");
-                start = Console.ReadLine();
+                service.GetShift(id); 
+                
+                Console.Write("\n Start Time DD/MM/YY HH:MM -: ");
+                string start = Validator.IsDateValid(Console.ReadLine());
+                if (start == "MENU") return;
+                shift.Start = DateTime.Parse(start);
+
+                Console.Write("\n End Time DD/MM/YY HH:MM -: ");
+                string end = Validator.IsDateValid(Console.ReadLine());
+                if (end == "MENU") return;
+                shift.End = DateTime.Parse(end);
+
+                CalculateMinutesAndPay(shift);
+                if (shift.Minutes == 0) return;
+
+                Console.Write("\n Location: ");
+                string location = Validator.IsStringValid(Console.ReadLine());
+                if (location == "MENU") return;
+                shift.Location = location;
+
+                service.UpdateShift(shift);
             }
-            
-            shift.Start = DateTime.Parse(start);
-
-            Console.Write("\n End Time DD/MM/YY HH:MM -: ");
-            string end = Console.ReadLine();
-            if (end == "MENU") { return; }
-
-            while (!Validator.IsDateValid(end))
-            {
-                Console.Write("\n Invalid Date. Please Try Again: ");
-                end = Console.ReadLine();
-            }
-
-            shift.End = DateTime.Parse(end);
-
-            Console.Write("\n Location: ");
-            string location = Console.ReadLine();
-            if (location == "MENU") { return; }
-
-            while (!Validator.IsStringValid(location))
-            {
-                Console.Write("\n Invalid Entry. Please Try Again: ");
-                location = Console.ReadLine();
-            }
-
-            shift.Location = location;
-           
-            // calculates the minutes from the times provided and pay from the minutes.
-            double minutes = (shift.End - shift.Start).TotalMinutes;
-
-            shift.Minutes = (decimal)minutes;
-
-            shift.Pay = shift.Minutes * (payRate / 60);
-
-            Console.WriteLine(shift.ShiftId);
-
-            service.UpdateShift(shift);
-
-            Console.WriteLine("\n Press any key to return.");
-            Console.ReadKey();
         }
         
         // Delete a shift.
@@ -245,41 +167,46 @@ namespace Shift_Tracker_Console_App
         {
             Shift shift = new Shift();
             
-            Console.Clear();
-
-            Console.WriteLine("Deleting a Shift record... Type MENU To return.");
-
+            Console.WriteLine("Deleting a Shift record... ");
             service.GetShifts();
+            
             Console.Write("\n Type the ID of the record you want to delete: ");
-            string id = Console.ReadLine();
-            if (id == "MENU") { return; }
-
-            while (!Validator.IsNumberValid(id))
-            {
-                Console.Write("\n Invalid number. Please Try again: ");
-                id = Console.ReadLine();
-            }
-
+            string id = Validator.IsNumberValid(Console.ReadLine());
+            if (id == "MENU")  return; 
             shift.ShiftId = Int32.Parse(id);
 
             Console.Clear();
             
             // Check if the ID is valid or null.
-            if (!service.GetShift(id))
+            if (!service.CheckShiftId(id))
             {
-                Console.WriteLine("\n Invalid ID chosen. Press any key to return... ");
+                Console.WriteLine($"\n ID:{id} does not exist.");
+            }
+            else
+            {
+                service.GetShift(id);
+                
+                Console.Write($"\n Are you sure you wish to delete Shift ID: {shift.ShiftId} ? (y or n)");
+                string entry = Console.ReadLine();
+                if (entry != "y") return;
+
+                service.DeleteShift(shift);
+            }
+        }
+
+        private void CalculateMinutesAndPay(Shift shift)
+        {
+            if (shift.End < shift.Start)
+            {
+                Console.WriteLine("\n Invalid Timespan between dates provided. Press any key to return... ");
                 Console.ReadKey();
                 return;
             }
+            double minutes = (shift.End - shift.Start).TotalMinutes;
 
-            Console.Write($"\n Are you sure you wish to delete Shift ID: {shift.ShiftId} ? (y or n)");
-            string entry = Console.ReadLine();
-            if (entry != "y") { return; }
+            shift.Minutes = (decimal)minutes;
 
-            service.DeleteShift(shift);
-
-            Console.WriteLine("\n Press any key to return.");
-            Console.ReadKey();
+            shift.Pay = shift.Minutes * (payRate / 60);
         }
     }
 }
