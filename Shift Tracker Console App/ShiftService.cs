@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Reflection;
 using RestSharp;
 using Shift_Tracker_Console_App.Models;
-using System.Text.Json;
 using System.Net;
+using System.Configuration;
 
 namespace Shift_Tracker_Console_App
 {
     internal class ShiftService
     {
-        private readonly string _apiKey = "http://localhost:26214/api/Shifts";
+        private readonly string _apiKey = ConfigurationManager.AppSettings.Get("conString");
 
         // HTTP GET All the Shift records
         internal void GetShifts()
@@ -34,7 +33,6 @@ namespace Shift_Tracker_Console_App
                 }
             }
         }
-
 
         // HTTP GET a single Shift record.
         internal void GetShift(string id)
@@ -59,6 +57,7 @@ namespace Shift_Tracker_Console_App
             }
         }
 
+        // Returns true or false if the ID provided belongs to a valid record.
         internal bool CheckShiftId(string id)
         {
             using (var client = new RestClient(_apiKey))
@@ -121,7 +120,6 @@ namespace Shift_Tracker_Console_App
                 {
                     Console.WriteLine(response.Result.ErrorMessage);
                 }
-
             }
         }
 
