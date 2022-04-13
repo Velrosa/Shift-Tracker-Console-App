@@ -7,7 +7,7 @@ using System.Reflection;
 using RestSharp;
 using Shift_Tracker_Console_App.Models;
 using System.Text.Json;
-using Newtonsoft.Json;
+using System.Net;
 
 namespace Shift_Tracker_Console_App
 {
@@ -21,17 +21,16 @@ namespace Shift_Tracker_Console_App
             using(var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest();
-                try
+
+                var response = client.ExecuteGetAsync<List<Shift>>(request);
+                if(response.Result.StatusCode == HttpStatusCode.OK)
                 {
-                    var response = client.GetAsync<List<Shift>>(request);
-
-                    List<Shift> shifts = response.Result;
-
+                    List<Shift> shifts = response.Result.Data;
                     TableVisuals.ShowTable(shifts);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(response.Result.ErrorMessage);
                 }
             }
         }
@@ -43,19 +42,19 @@ namespace Shift_Tracker_Console_App
             using (var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest($"/{id}");
+                
+                var response = client.ExecuteGetAsync<Shift>(request);
 
-                try
+                if(response.Result.StatusCode == HttpStatusCode.OK)
                 {
-                    var response = client.GetAsync<Shift>(request);
-
                     List<Shift> shifts = new List<Shift>();
+                    shifts.Add(response.Result.Data);
 
-                    shifts.Add(response.Result);
                     TableVisuals.ShowTable(shifts);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(response.Result.ErrorMessage);
                 }
             }
         }
@@ -65,22 +64,17 @@ namespace Shift_Tracker_Console_App
             using (var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest($"/{id}");
-                try
-                {
-                    var response = client.GetAsync<Shift>(request);
 
-                    if (response.Result != null)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                catch (Exception ex)
+                var response = client.ExecuteGetAsync<Shift>(request);
+
+                if(response.Result.StatusCode == HttpStatusCode.OK)
                 {
-                    Console.WriteLine(ex.Message);
+                    if (response.Result.Data == null) return false;
+                    return true;
+                }
+                else
+                {
+                    Console.Write(response.Result.ErrorMessage);
                     return false;
                 }
             }
@@ -92,15 +86,16 @@ namespace Shift_Tracker_Console_App
             using (var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest().AddJsonBody(shift);
-                try
-                {
-                    client.PostAsync<Shift>(request);
 
+                var response = client.ExecutePostAsync<Shift>(request);
+
+                if(response.Result.StatusCode == HttpStatusCode.Created)
+                {
                     Console.WriteLine($" Shift Record sucessfully created.");
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(response.Result.ErrorMessage);
                 }
             }
         }
@@ -111,15 +106,22 @@ namespace Shift_Tracker_Console_App
             using (var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest($"?id={shift.ShiftId}").AddJsonBody(shift);
-                try
+
+                var response = client.ExecutePutAsync<Shift>(request);
+
+                if(response.Result.StatusCode == HttpStatusCode.NoContent)
                 {
-                    client.PutAsync<Shift>(request);
-                    Console.WriteLine($" Shift Record: {shift.ShiftId} sucessfully updated.");
+                    Console.WriteLine($"\n Shift Record: {shift.ShiftId} sucessfully updated.");
                 }
-                catch (Exception ex)
+                else if(response.Result.StatusCode == HttpStatusCode.BadRequest)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"\n Invalid ID's Provided, {shift.ShiftId} has not been updated.");
                 }
+                else
+                {
+                    Console.WriteLine(response.Result.ErrorMessage);
+                }
+
             }
         }
 
@@ -129,14 +131,20 @@ namespace Shift_Tracker_Console_App
             using (var client = new RestClient(_apiKey))
             {
                 var request = new RestRequest($"?id={shift.ShiftId}");
-                try
+
+                var response = client.DeleteAsync(request);
+
+                if (response.Result.StatusCode == HttpStatusCode.NoContent)
                 {
-                    client.DeleteAsync<Shift>(request);
-                    Console.WriteLine($" Shift Record: {shift.ShiftId} sucessfully deleted.");
+                    Console.WriteLine($"\n Shift Record: {shift.ShiftId} sucessfully deleted.");
                 }
-                catch (Exception ex)
+                else if (response.Result.StatusCode == HttpStatusCode.NotFound)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"\n No record with the ID:{shift.ShiftId} could be found.");
+                }
+                else
+                {
+                    Console.WriteLine(response.Result.ErrorMessage);
                 }
             }
         }
