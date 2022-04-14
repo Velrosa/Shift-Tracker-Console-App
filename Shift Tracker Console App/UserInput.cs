@@ -64,36 +64,27 @@ namespace Shift_Tracker_Console_App
         // Get all shifts from API.
         private void GetShiftsInput()
         {
-            Console.WriteLine("\n Displaying All Shift Records... ");
-            
+            Console.WriteLine("\n Displaying All Shift Records...\n");
             service.GetShifts();
         }
         
         // Get one shift from API.
         private void GetShiftInput()
-        {
-            Console.WriteLine("Displaying a single Shift record... ");
-            
+        {            
             Console.Write("\n Please enter the ID of the Shift you want to view: ");
             string id = Validator.IsNumberValid(Console.ReadLine());
             if (id == "MENU") return;
 
-            if (!service.CheckShiftId(id))
-            {
-                Console.WriteLine($"\n ID:{id} does not exist.");
-            }
-            else
-            {
-                Console.Clear();
-                service.GetShift(id);
-            }
+            Console.Clear();
+            Console.WriteLine("\n Displaying a single Shift record... \n");
+            service.GetShift(id);
         }
         // Create a shift.
         private void CreateShiftInput()
         {
             Shift shift = new Shift();
             
-            Console.WriteLine("\n Creating a Shift... ");
+            Console.WriteLine("\n Creating a Shift...");
             
             Console.Write("\n Start Time DD/MM/YY HH:MM -: ");
             string start = Validator.IsDateValid(Console.ReadLine());
@@ -120,26 +111,19 @@ namespace Shift_Tracker_Console_App
         {
             Shift shift = new Shift();
 
-            Console.WriteLine("\n Updating a Shift...");
+            Console.WriteLine("\n Updating a Shift...\n");
             service.GetShifts();
 
             Console.Write("\n Enter the ID of the Shift record you want to change: ");
             string id = Validator.IsNumberValid(Console.ReadLine());
             if (id == "MENU")  return; 
-
             shift.ShiftId = Int32.Parse(id);
 
             Console.Clear();
             
             // Check if the ID is valid or null.
-            if (!service.CheckShiftId(shift.ShiftId.ToString()))
+            if (service.GetShift(shift.ShiftId.ToString()))
             {
-                Console.WriteLine($"\n ID:{id} does not exist.");
-            }
-            else
-            {
-                service.GetShift(id); 
-                
                 Console.Write("\n Start Time DD/MM/YY HH:MM -: ");
                 string start = Validator.IsDateValid(Console.ReadLine());
                 if (start == "MENU") return;
@@ -167,7 +151,7 @@ namespace Shift_Tracker_Console_App
         {
             Shift shift = new Shift();
             
-            Console.WriteLine("Deleting a Shift record... ");
+            Console.WriteLine("\n Deleting a Shift record...\n");
             service.GetShifts();
             
             Console.Write("\n Type the ID of the record you want to delete: ");
@@ -178,15 +162,9 @@ namespace Shift_Tracker_Console_App
             Console.Clear();
             
             // Check if the ID is valid or null.
-            if (!service.CheckShiftId(id))
+            if (service.GetShift(id))
             {
-                Console.WriteLine($"\n ID:{id} does not exist.");
-            }
-            else
-            {
-                service.GetShift(id);
-                
-                Console.Write($"\n Are you sure you wish to delete Shift ID: {shift.ShiftId} ? (y or n)");
+                Console.Write($"\n Are you sure you wish to delete the Shift above? (y or n) ");
                 string entry = Console.ReadLine();
                 if (entry != "y") return;
 
@@ -196,10 +174,9 @@ namespace Shift_Tracker_Console_App
 
         private void CalculateMinutesAndPay(Shift shift)
         {
-            if (shift.End < shift.Start)
+            if (shift.End <= shift.Start)
             {
-                Console.WriteLine("\n Invalid Timespan between dates provided. Press any key to return... ");
-                Console.ReadKey();
+                Console.WriteLine("\n Invalid Timespan between dates provided.");
                 return;
             }
             double minutes = (shift.End - shift.Start).TotalMinutes;

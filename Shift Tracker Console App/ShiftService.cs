@@ -12,12 +12,12 @@ namespace Shift_Tracker_Console_App
 {
     internal class ShiftService
     {
-        private readonly string _apiKey = ConfigurationManager.AppSettings.Get("conString");
+        private readonly string apiUrl = ConfigurationManager.ConnectionStrings["apiUrl"].ConnectionString;
 
         // HTTP GET All the Shift records
         internal void GetShifts()
         {
-            using(var client = new RestClient(_apiKey))
+            using(var client = new RestClient(apiUrl))
             {
                 var request = new RestRequest();
 
@@ -35,9 +35,9 @@ namespace Shift_Tracker_Console_App
         }
 
         // HTTP GET a single Shift record.
-        internal void GetShift(string id)
+        internal bool GetShift(string id)
         {
-            using (var client = new RestClient(_apiKey))
+            using (var client = new RestClient(apiUrl))
             {
                 var request = new RestRequest($"/{id}");
                 
@@ -49,31 +49,16 @@ namespace Shift_Tracker_Console_App
                     shifts.Add(response.Result.Data);
 
                     TableVisuals.ShowTable(shifts);
+                    return true;
+                }
+                else if(response.Result.StatusCode == HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($" Shift ID:{id}, was not found.");
+                    return false;
                 }
                 else
                 {
                     Console.WriteLine(response.Result.ErrorMessage);
-                }
-            }
-        }
-
-        // Returns true or false if the ID provided belongs to a valid record.
-        internal bool CheckShiftId(string id)
-        {
-            using (var client = new RestClient(_apiKey))
-            {
-                var request = new RestRequest($"/{id}");
-
-                var response = client.ExecuteGetAsync<Shift>(request);
-
-                if(response.Result.StatusCode == HttpStatusCode.OK)
-                {
-                    if (response.Result.Data == null) return false;
-                    return true;
-                }
-                else
-                {
-                    Console.Write(response.Result.ErrorMessage);
                     return false;
                 }
             }
@@ -82,15 +67,20 @@ namespace Shift_Tracker_Console_App
         // HTTP POST a Shift record.
         internal void CreateShift(Shift shift)
         {
-            using (var client = new RestClient(_apiKey))
+            using (var client = new RestClient(apiUrl))
             {
                 var request = new RestRequest().AddJsonBody(shift);
 
                 var response = client.ExecutePostAsync<Shift>(request);
-
+                
                 if(response.Result.StatusCode == HttpStatusCode.Created)
                 {
-                    Console.WriteLine($" Shift Record sucessfully created.");
+                    List<Shift> shifts = new List<Shift>();
+                    shifts.Add(response.Result.Data);
+
+                    Console.Clear();
+                    TableVisuals.ShowTable(shifts);
+                    Console.WriteLine("\n Shift Record sucessfully created.");
                 }
                 else
                 {
@@ -102,7 +92,7 @@ namespace Shift_Tracker_Console_App
         // HTTP PUT a Shift record.
         internal void UpdateShift(Shift shift)
         {
-            using (var client = new RestClient(_apiKey))
+            using (var client = new RestClient(apiUrl))
             {
                 var request = new RestRequest($"?id={shift.ShiftId}").AddJsonBody(shift);
 
@@ -126,7 +116,7 @@ namespace Shift_Tracker_Console_App
         // HTTP DELETE a Shift record.
         internal void DeleteShift(Shift shift)
         {
-            using (var client = new RestClient(_apiKey))
+            using (var client = new RestClient(apiUrl))
             {
                 var request = new RestRequest($"?id={shift.ShiftId}");
 
