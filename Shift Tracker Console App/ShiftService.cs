@@ -10,12 +10,12 @@ using System.Configuration;
 
 namespace Shift_Tracker_Console_App
 {
-    internal class ShiftService
+    public class ShiftService : IShiftService
     {
         private readonly string apiUrl = ConfigurationManager.ConnectionStrings["apiUrl"].ConnectionString;
 
         // HTTP GET All the Shift records
-        internal void GetShifts()
+        public void GetShifts()
         {
             using(var client = new RestClient(apiUrl))
             {
@@ -35,7 +35,7 @@ namespace Shift_Tracker_Console_App
         }
 
         // HTTP GET a single Shift record.
-        internal bool GetShift(string id)
+        public bool GetShift(string id)
         {
             using (var client = new RestClient(apiUrl))
             {
@@ -65,7 +65,7 @@ namespace Shift_Tracker_Console_App
         }
 
         // HTTP POST a Shift record.
-        internal void CreateShift(Shift shift)
+        public void CreateShift(Shift shift)
         {
             using (var client = new RestClient(apiUrl))
             {
@@ -90,7 +90,7 @@ namespace Shift_Tracker_Console_App
         }
 
         // HTTP PUT a Shift record.
-        internal void UpdateShift(Shift shift)
+        public void UpdateShift(Shift shift)
         {
             using (var client = new RestClient(apiUrl))
             {
@@ -114,7 +114,7 @@ namespace Shift_Tracker_Console_App
         }
 
         // HTTP DELETE a Shift record.
-        internal void DeleteShift(Shift shift)
+        public void DeleteShift(Shift shift)
         {
             using (var client = new RestClient(apiUrl))
             {

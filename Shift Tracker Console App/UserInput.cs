@@ -9,7 +9,7 @@ namespace Shift_Tracker_Console_App
 {
     internal class UserInput
     {
-        ShiftService service = new ShiftService();
+        IShiftService service = new ShiftService();
         
         private readonly decimal payRate = 14;   // PayRate (per hour) used to calcuate pay from hours worked
                 
